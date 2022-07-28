@@ -1,0 +1,105 @@
+body{
+    background-color: #111;
+    color:rgb(184, 184, 184);
+    text-align:center;
+    font-family: "canada-type-gibson", serif;
+    letter-spacing: .2rem;
+    margin:0;
+}
+header{
+    width: 100%;
+    overflow:hidden;
+}
+h1{
+    padding-top: 5%;
+    font-weight: 600;
+    font-size: 4em;
+    transform: rotateZ(3deg);
+
+}
+
+h2{
+    font-size:2em;
+    padding-top: 5%;
+}
+
+a{
+    font-size: 1.5em;
+    text-decoration: none;
+}
+a:hover{
+    font-size: 3em;
+}
+
+
+svg{
+    display: block;
+    margin: auto;
+    padding-bottom: 80px;
+    width:80%;
+    position: relative;
+    animation-name: rock, float;
+    animation-duration: 3s, 2s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes float {
+    from{
+        bottom: 10px;
+    }
+    to{
+        bottom: 0px;
+    } 
+}
+@keyframes rock {
+    from{
+        transform: rotateZ(1deg);
+    }
+    to{
+        transform: rotateZ(-1deg);
+    }
+}
+
+.onText{
+    color:rgb(231, 231, 231);
+    font-size: 1em;
+}
+
+form{
+    width: 80%;
+    height: 300px;
+    margin:auto;
+}
+section{
+    position:relative;
+    background-color: rgba(0, 0, 0, 0.267);
+}
+label{
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    line-height: 1em;
+}
+input{
+    margin-left:10px;
+}
+input[type="color"]{
+    width: 20%;
+    height: 5vh;
+    border:none;
+    padding:0px;
+    background-color: #e7e7e7;
+
+}
+input[type="submit"]{
+    display: block; 
+    margin: 75px auto;
+    padding: 10px 20px;
+    font-family: "canada-type-gibson", serif;
+    color:white;
+    border:none;
+    font-size: 2em;
+}

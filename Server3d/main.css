@@ -1,0 +1,49 @@
+body{
+    margin:0;
+    padding:0;
+    overflow-x:hidden;
+    font-family: 'Spartan', sans-serif;
+    font-size: 1.2rem;
+    background-color: rgb(178,178,178);
+    color:black;
+}
+.site{
+    position: absolute;
+    margin-top: 50vh;
+    top:0px;
+    width: 100vw;
+}
+h3{
+    font-weight: 800;
+    text-align: center;
+    font-size: 3rem;
+}
+.col{
+    justify-content: center;
+    margin:0 auto;
+    margin-bottom: 5rem;
+    display:flex;
+    column-gap: 10%;
+    
+}
+label{
+    text-align: center;
+    display: block;
+    
+}
+input{
+    Display: block;  
+}
+input[type="color"]{
+    width:10vh;
+    height: 10vh;
+    padding:0;
+    border:0px;
+    background-color: rgba(0, 255, 255, 0);
+}
+input[type="submit"]{
+    padding:10px;
+    border:0px;
+    font-family: 'Spartan';
+    font-size: 1rem;
+}
