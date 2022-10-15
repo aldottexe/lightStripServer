@@ -1,0 +1,124 @@
+body{
+    background-color: #111;
+    color:white;
+    text-align:center;
+    font-family: "canada-type-gibson", serif;
+    letter-spacing: .2rem;
+    margin:0;
+}
+header{
+    width: 100%;
+    overflow:hidden;
+}
+h1{
+    padding-top: 0;
+    margin-top: 40px;
+    font-weight: 600;
+    font-size: 4em;
+    transform: rotateZ(3deg);
+}
+
+h2{
+    font-size:24px;
+    letter-spacing: .05em;
+    margin-bottom: 5vh;
+    padding: 10px;
+    -webkit-mask-image: url(text\ highlight.svg);
+    mask-image: url(text\ highlight.svg);
+    
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    
+}
+svg{
+    display: block;
+    margin: auto;
+    padding-bottom: 50px;
+    width:80%;
+    position: relative;
+    animation-name: rock, float;
+    animation-duration: 3s, 2s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+}
+@keyframes float {
+    from{
+        bottom: 10px;
+    }
+    to{
+        bottom: 0px;
+    } 
+}
+@keyframes rock {
+    from{
+        transform: rotateZ(1deg);
+    }
+    to{
+        transform: rotateZ(-1deg);
+    }
+}
+a{
+    text-decoration: none;
+    color:rgb(231, 231, 231);
+    font-size: 1em;
+    letter-spacing: .05rem;
+    font-weight: 500;
+}
+a:hover{
+    font-size: 1.8em;
+}
+section{
+    background-color: rgba(0, 0, 0, 0.267);
+    padding-bottom: 30vh;
+    padding-top: 3vh;
+    margin-top: 10px;
+    -webkit-mask-image: url(border.svg);
+    mask-image: url(border.svg);
+    -webkit-mask-size: 100vw;
+    mask-size: 100%;
+    -webkit-mask-position-y: -25px;
+}
+form{
+    width: 80%;
+    height: 300px;
+    margin:auto;
+}
+form div{
+    display: flex;
+    justify-content: center;
+}
+label{
+    text-align: center;
+    font-size: 16px;
+    line-height: 1em;
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: .05rem;
+    /* margin: 0 auto; */
+}
+input[type="color"]{
+    display: block;
+    width: 30vw;
+    height: 30vw;
+    margin: 0 auto;
+    border:none;
+    padding:0px;
+    background-color:#e7e7e7;
+    -webkit-mask-image: url(picker.svg);
+    mask-image: url(picker.svg);
+    /* #00000000 */
+
+}
+input[type="submit"]{
+    display: block; 
+    margin: 30px auto;
+    padding: 10px 20px;
+    letter-spacing: .05em;
+    font-family: "canada-type-gibson", serif;
+    font-size: 16px;
+    font-weight: 600;
+    color:white;
+    border:none;
+    border-radius: 5px;
+}
