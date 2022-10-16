@@ -104,6 +104,7 @@ input[type="color"]{
     margin: 0 auto;
     border:none;
     padding:0px;
+    border-radius: 0;
     background-color:#e7e7e7;
     -webkit-mask-image: url(picker.svg);
     mask-image: url(picker.svg);

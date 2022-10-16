@@ -1,10 +1,14 @@
 from flask import Flask, request, render_template
-import time
+from time import sleep
 from rpi_ws281x import *
 
+#the rpi_ws281x Library stores color values as 24bit ints, where values of 3 8bit ints are shoved right next
+#to eachother in binary. the rgb value (255,0,255) is translated to 1111111100000000111111111.
+#this function deconstructs the provided ints back into [255,0,255]
 def get_lights(strip):
     output = []
-    for light in strip.getPixels():
+
+    for light in strip.getPixels()[0:strip.numPixels()]:
         red   = light >> 16
         green = light >> 8 & 255
         blue  = light & 255
@@ -13,11 +17,10 @@ def get_lights(strip):
     
     return output
 
-
 #displays a given list of lights.
 #if no list is given will turn lights off.
-def show(strip, LED_COUNT, newRGB = None):
-    if newRGB is None: newRGB = [[0,0,0]]*LED_COUNT
+def show(strip, newRGB = None):
+    if newRGB is None: newRGB = [[0,0,0]]*strip.numPixels()
 
     for lightPos, lightColor in enumerate(newRGB):
         strip.setPixelColor(lightPos, Color(lightColor[0], lightColor[1], lightColor[2]))
@@ -26,7 +29,7 @@ def show(strip, LED_COUNT, newRGB = None):
 
 #creates a gradient between 2 rgb values.
 #the offset parameter shifts the left bound of the gradient.
-#returns a nested list in the form of [[0,0,0]]
+#returns a nested list in the form of [[0,0,0],[255,255,255], ...]
 #if no color values are given, a default gradient will be created
 def gradient (LED_COUNT: int, rgb1 = [255,0,0], rgb2 = [128,0,255], offset=0):
     offset = min(offset, LED_COUNT - 1)
@@ -46,6 +49,38 @@ def gradient (LED_COUNT: int, rgb1 = [255,0,0], rgb2 = [128,0,255], offset=0):
         result[:0] = [[round(rgbCopy[0]), round(rgbCopy[1]), round(rgbCopy[2])]]
 
     return result
+
+#fades the lights between two gradients
+def fade(strip, new_state=None, frames=40):
+    LED_COUNT = strip.numPixels()
+    if new_state == None: new_state = [[0,0,0]] * LED_COUNT
+
+    #grabs the the current state
+    old_state = get_lights(strip)
+    
+    #the difference between a the current light and new light may vary per light, and per color channel. 
+    # so we gotta calculate and increment for each of them. first block of code calculates the increments
+    # by finding the difference between the current led values and the desired led values, and then
+    #dividing that by the number of 'frames' we want the animation to be. 
+    increments = []
+    for old_light, new_light in zip(old_state, new_state):
+        increment = [(new_chnl - old_chnl) / (LED_COUNT - 1) for old_chnl, new_chnl in zip(old_light, new_light)]
+        increments.append(increment)
+
+    #the outer most loop is the animation loop, every time it runs, an new frame is displayed on the lights
+    #the inner loop increments the lights and sends the changes to the ws281x library.
+    for _ in range(frames):
+        for i in range(LED_COUNT):
+            old_state[i] = [old_chnl + increment for old_chnl, increment in zip(old_state[i], increments[i])]
+            r, g, b = [round(old_state[i][j]) for j in range(3)]
+            #the color object is part of the library i'm using. you gotta put your data in this object
+            #before the library will read it
+            strip.setPixelColor(i, Color(r, g, b))
+        strip.show()
+        sleep(1/60)
+    
+
+
 
 if __name__ == "__main__":
     # LED strip configuration:
@@ -67,8 +102,7 @@ if __name__ == "__main__":
     #it will run a server in the background that calls various functions depending on the requests it receives.
     app = Flask(__name__)
 
-    show(strip, LED_COUNT, gradient(LED_COUNT, offset=LED_COUNT-20))
+    show(strip, gradient(LED_COUNT, offset=LED_COUNT-20))
     powered = 1
-    print("output of getLights vvvvv")
     print(strip.getPixels())
     print(type(strip.getPixels()[0]))
