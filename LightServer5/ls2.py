@@ -1,7 +1,9 @@
+from tkinter import W
 from flask import Flask, request, render_template
 from time import sleep
 from rpi_ws281x import *
 
+#https://github.com/richardghirst/rpi_ws281x/blob/master/python/neopixel.py
 #the rpi_ws281x Library stores color values as 24bit ints, where values of 3 8bit ints are shoved right next
 #to eachother in binary. the rgb value (255,0,255) is translated to 1111111100000000111111111.
 #this function deconstructs the provided ints back into [255,0,255]
@@ -31,15 +33,15 @@ def show(strip, newRGB = None):
 #the offset parameter shifts the left bound of the gradient.
 #returns a nested list in the form of [[0,0,0],[255,255,255], ...]
 #if no color values are given, a default gradient will be created
-def gradient (LED_COUNT: int, rgb1 = [255,0,0], rgb2 = [128,0,255], offset=0):
-    offset = min(offset, LED_COUNT - 1)
+def gradient (led_count: int, rgb1 = [255,0,0], rgb2 = [128,0,255], offset=0):
+    offset = min(offset, led_count - 1)
     result = []
     rgbCopy = list(rgb1)
    
-    increments = [(c2 - c1) / (LED_COUNT - 1) for c1, c2 in zip(rgb1, rgb2)]
+    increments = [(c2 - c1) / (led_count - 1) for c1, c2 in zip(rgb1, rgb2)]
 
     #calculates every light value after the offset
-    for i in range(LED_COUNT-offset):
+    for i in range(led_count-offset):
         result.append([round(rgb1[0]), round(rgb1[1]), round(rgb1[2])])
         rgb1 = [val + increment for val, increment in zip(rgb1, increments)]
 
@@ -52,8 +54,8 @@ def gradient (LED_COUNT: int, rgb1 = [255,0,0], rgb2 = [128,0,255], offset=0):
 
 #fades the lights between two gradients
 def fade(strip, new_state=None, frames=40):
-    LED_COUNT = strip.numPixels()
-    if new_state == None: new_state = [[0,0,0]] * LED_COUNT
+    led_count = LED_COUNT
+    if new_state == None: new_state = [[0,0,0]] * led_count
 
     #grabs the the current state
     old_state = get_lights(strip)
@@ -64,12 +66,12 @@ def fade(strip, new_state=None, frames=40):
     #dividing that by the number of 'frames' we want the animation to be. 
     increments = []
     for old_light, new_light in zip(old_state, new_state):
-        increment = [(new_chnl - old_chnl) / (LED_COUNT - 1) for old_chnl, new_chnl in zip(old_light, new_light)]
+        increment = [(new_chnl - old_chnl) / (frames - 1) for old_chnl, new_chnl in zip(old_light, new_light)]
         increments.append(increment)
 
     #the outer most loop is the animation loop, every time it runs, an new frame is displayed on the lights
     #the inner loop increments the lights and sends the changes to the ws281x library.
-    for _ in range(frames):
+    for _ in range(frames-1):
         for i in range(LED_COUNT):
             old_state[i] = [old_chnl + increment for old_chnl, increment in zip(old_state[i], increments[i])]
             r, g, b = [round(old_state[i][j]) for j in range(3)]
@@ -79,30 +81,85 @@ def fade(strip, new_state=None, frames=40):
         strip.show()
         sleep(1/60)
     
+    show(strip, new_state)
+    
+def fromHex(color):
+   color = str(color).lstrip("#")
+   return list(int(color[i:i+2], 16) for i in (0, 2, 4))
+
+# WEB REQUEST HANDLING
+
+@app.route("/", methods=['GET', 'POST'])
+def turnOn():
+    global powered, last_on
+   
+    if not powered:
+
+        print("turning on")
+        #generates a (default) gradient then inserts it into fade
+        #stripState = list(lastOn)
+        fade(strip, last_on)
+        powered= True
+
+    if request.method == 'POST':
+        
+        color1 = request.form.get('color1')
+        color2 = request.form.get('color2')
+        
+        color1 = fromHex(color1)
+        color2 = fromHex(color2)
+        
+
+        fade(strip, gradient(list(color1), list(color2), offset=LED_COUNT-20))
+        #show(strip, gradient(list(color1), list(color2), offset=LED_COUNT-20))
 
 
+    return render_template('index.html')
+
+@app.route("/off")
+def turnOff():
+    global powered, last_on
+
+    if powered:
+
+        print("turning off")
+        last_on = get_lights()
+        fade(strip)
+
+        powered = False
+
+
+    return render_template('/off.html')
+
+#    _   _     ___     _____  __  __
+#   / | / |   / _ |   /_  _/ /  |/ /
+#  /  |/  |  / -* |  _/ /_  /     /
+# /_/\_/|_| /_/ \_| /___/  /_/|__/
+
+# LED strip configuration:
+LED_COUNT      = 261      # Number of LED pixels.
+LED_PIN        = 18      # GPIO pin connected to the pixels (18 uses PWM!).
+LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
+LED_DMA        = 10      # DMA channel to use for generating signal (try 10)
+LED_BRIGHTNESS = 155     # Set to 0 for darkest and 255 for brightest
+LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
+LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
+
+#Create NeoPixel object with appropriate configuration.
+strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+
+powered = False
+last_on = []
 
 if __name__ == "__main__":
-    # LED strip configuration:
-    LED_COUNT      = 261      # Number of LED pixels.
-    LED_PIN        = 18      # GPIO pin connected to the pixels (18 uses PWM!).
-    LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
-    LED_DMA        = 10      # DMA channel to use for generating signal (try 10)
-    LED_BRIGHTNESS = 155     # Set to 0 for darkest and 255 for brightest
-    LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
-    LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
-
-    #Create NeoPixel object with appropriate configuration.
-    strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
-
     # Intialize the library (must be called once before other functions).
     strip.begin()
-    
+
+    fade(strip, gradient(LED_COUNT, offset=LED_COUNT-20))
+    powered = True
+
     #create Flask app the same way
     #it will run a server in the background that calls various functions depending on the requests it receives.
     app = Flask(__name__)
 
-    show(strip, gradient(LED_COUNT, offset=LED_COUNT-20))
-    powered = 1
-    print(strip.getPixels())
-    print(type(strip.getPixels()[0]))
+    
