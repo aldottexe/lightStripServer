@@ -1,7 +1,10 @@
-from tkinter import W
 from flask import Flask, request, render_template
 from time import sleep
 from rpi_ws281x import *
+
+#create Flask app the same way
+#it will run a server in the background that calls various functions depending on the requests it receives.
+app = Flask(__name__)
 
 #https://github.com/richardghirst/rpi_ws281x/blob/master/python/neopixel.py
 #the rpi_ws281x Library stores color values as 24bit ints, where values of 3 8bit ints are shoved right next
@@ -110,7 +113,7 @@ def turnOn():
         color2 = fromHex(color2)
         
 
-        fade(strip, gradient(list(color1), list(color2), offset=LED_COUNT-20))
+        fade(strip, gradient(LED_COUNT, list(color1), list(color2), offset=LED_COUNT-20))
         #show(strip, gradient(list(color1), list(color2), offset=LED_COUNT-20))
 
 
@@ -123,7 +126,7 @@ def turnOff():
     if powered:
 
         print("turning off")
-        last_on = get_lights()
+        last_on = get_lights(strip)
         fade(strip)
 
         powered = False
@@ -134,7 +137,7 @@ def turnOff():
 #    _   _     ___     _____  __  __
 #   / | / |   / _ |   /_  _/ /  |/ /
 #  /  |/  |  / -* |  _/ /_  /     /
-# /_/\_/|_| /_/ \_| /___/  /_/|__/
+# /_/\_/|_| /_/ \_| /___/  /_/|__/ 
 
 # LED strip configuration:
 LED_COUNT      = 261      # Number of LED pixels.
@@ -160,6 +163,8 @@ if __name__ == "__main__":
 
     #create Flask app the same way
     #it will run a server in the background that calls various functions depending on the requests it receives.
-    app = Flask(__name__)
+    try:
+        app.run(host='0.0.0.0', port=80, debug=True)
 
-    
+    except KeyboardInterrupt: 
+        fade(strip)
