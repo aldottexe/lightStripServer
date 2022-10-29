@@ -2,8 +2,8 @@ from flask import Flask, request, render_template
 from time import sleep
 from rpi_ws281x import *
 
-
 #https://github.com/richardghirst/rpi_ws281x/blob/master/python/neopixel.py
+
 #the rpi_ws281x Library stores color values as 24bit ints, where values of 3 8bit ints are shoved right next
 #to eachother in binary. the rgb value (255,0,255) is translated to 1111111100000000111111111.
 #this function deconstructs the provided ints back into [255,0,255]
@@ -41,7 +41,7 @@ def gradient (led_count: int, rgb1 = [255,0,0], rgb2 = [128,0,255], offset=0):
     increments = [(c2 - c1) / (led_count - 1) for c1, c2 in zip(rgb1, rgb2)]
 
     #calculates every light value after the offset
-    for i in range(led_count-offset):
+    for _ in range(led_count-offset):
         result.append([round(rgb1[0]), round(rgb1[1]), round(rgb1[2])])
         rgb1 = [val + increment for val, increment in zip(rgb1, increments)]
 
@@ -53,6 +53,9 @@ def gradient (led_count: int, rgb1 = [255,0,0], rgb2 = [128,0,255], offset=0):
     return result
 
 #fades the lights between two gradients
+#if no new gradient is provided, it will fade the lights off.
+#frames signifies how many steps you want to render from the current gradient to the desired gradient
+#the framerate is more or less whatever the hardware can manage, with a cap at 60fps
 def fade(strip, new_state=None, frames=40):
     led_count = LED_COUNT
     if new_state == None: new_state = [[0,0,0]] * led_count
@@ -82,7 +85,8 @@ def fade(strip, new_state=None, frames=40):
         sleep(1/60)
     
     show(strip, new_state)
-    
+
+#turns a hex value input (#fffffffff) into an list output [255,255,255]
 def fromHex(color):
    color = str(color).lstrip("#")
    return list(int(color[i:i+2], 16) for i in (0, 2, 4))
